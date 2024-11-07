@@ -2,7 +2,11 @@ package org.btg.service;
 
 import lombok.RequiredArgsConstructor;
 import org.btg.exception.NotFoundException;
+import org.btg.model.documents.Cliente;
+import org.btg.model.documents.Fondo;
 import org.btg.model.documents.Transaccion;
+import org.btg.model.dto.ClienteDTO;
+import org.btg.model.dto.FondoDTO;
 import org.btg.model.dto.TransaccionDTO;
 import org.btg.model.mapper.TransaccionMapper;
 import org.btg.repository.TransaccionRepository;
@@ -13,6 +17,10 @@ import reactor.core.publisher.Mono;
 @Service
 public class TransaccionServiceImpl implements TransaccionService{
     private final TransaccionRepository repository;
+
+    private final ClienteService clienteService;
+
+    private  final FondoService fondoService;
 
     private final TransaccionMapper mapper;
     @Override

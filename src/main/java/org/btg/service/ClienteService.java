@@ -12,5 +12,7 @@ public interface ClienteService {
 
     Flux<ClienteDTO> findAll();
 
+    Mono<ClienteDTO> addFondoCliente(String idCliente, String idFondo);
+
 
 }
