@@ -1,4 +1,36 @@
+# CONSIDERACIONES
+    1 - LENGUAJE JAVA 17
+    2 - MAVEN
+    3 - CREAR S3 PARA CONTENER EL ZIP DE LA CONSTRUCCION DEL PROYECTO
+    4 - Reemplzar variables de las conexiones a la base de datos y al servicio SNS
+
+# CONSTRUCCION BACK JAVA LAMBDA EN AWS
+
+    1. DESCARGAR EL PROYECTO
+        
+    
+    2. Ejecutar mvn clean
+       Descripción: mvn clean elimina todos los archivos generados durante compilaciones anteriores, principalmente en la 
+       carpeta target, que es donde Maven guarda los resultados de las compilaciones, incluyendo archivos .class, archivos 
+       JAR o WAR y ZIP.
+    
+       
+    3. mvn install
+       Descripción: mvn install compila el proyecto y todos sus módulos, ejecuta pruebas, y, si todo es exitoso, empaqueta 
+       el código (en un JAR, WAR o ZIP) y lo instala en el repositorio local de Maven (usualmente en el directorio .target en tu máquina).
+    
+    4. agregar el .zip AL S3
+
+    5. EJECUTAR EL ARCHIVO YAML EN CLOUDFORMATION QUE SE DEJA A CONTINUACION  
+
+- [CLOUDFORMATION](/java-back-lambda-stack-v2.yaml)
+
+    6. obtener la url del apigateway y reeemplazar en el servicio del front
+
+
 # btg-lambda serverless API
+
+
 The btg-lambda project, created with [`aws-serverless-java-container`](https://github.com/aws/serverless-java-container).
 
 The starter project defines a simple `/ping` resource that can accept `GET` requests with its tests.
