@@ -1,8 +1,10 @@
 package org.btg.handler;
 
 import lombok.RequiredArgsConstructor;
+import org.btg.exception.BusinessException;
 import org.btg.exception.NotFoundException;
 import org.btg.model.dto.ClienteDTO;
+import org.btg.model.dto.Fondos;
 import org.btg.service.ClienteService;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
@@ -12,6 +14,7 @@ import reactor.core.publisher.Mono;
 
 import java.net.URI;
 import java.util.Collections;
+import java.util.List;
 
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
@@ -26,7 +29,8 @@ public class ClienteHandler {
                         .created(URI.create("/cliente".concat(clienteOut.id())))
                         .contentType(APPLICATION_JSON)
                         .bodyValue(clienteOut)
-                ));
+                )).onErrorResume(BusinessException.class, ex -> ServerResponse.status(HttpStatus.BAD_REQUEST)
+                        .bodyValue(Collections.singletonMap("message", ex.getMessage())));
     }
 
     public Mono<ServerResponse> findCliente(ServerRequest request) {
@@ -52,6 +56,33 @@ public class ClienteHandler {
                 .onErrorResume(NotFoundException.class, ex -> ServerResponse.status(HttpStatus.NOT_FOUND)
                         .bodyValue(Collections.singletonMap("message", ex.getMessage())));
     }
+
+    public Mono<ServerResponse> addFondosCliente(ServerRequest request) {
+        String idCliente = request.pathVariable("id");
+        return request.bodyToMono(Fondos.class)
+                .flatMap(idsFondos -> service.addFondosCliente(idCliente, idsFondos.getIdsFondos()))
+                .flatMap(clienteOut -> ServerResponse.ok()
+                        .contentType(APPLICATION_JSON)
+                        .bodyValue(clienteOut))
+                .onErrorResume(NotFoundException.class, ex -> ServerResponse.status(HttpStatus.NOT_FOUND)
+                        .bodyValue(Collections.singletonMap("message", ex.getMessage())))
+                .onErrorResume(BusinessException.class, ex -> ServerResponse.status(HttpStatus.BAD_REQUEST)
+                        .bodyValue(Collections.singletonMap("message", ex.getMessage())));
+    }
+
+    public Mono<ServerResponse> removeFondosCliente(ServerRequest request) {
+        String idCliente = request.pathVariable("id");
+        return request.bodyToMono(Fondos.class)
+                .flatMap(idsFondos -> service.removeFondosCliente(idCliente, idsFondos.getIdsFondos()))
+                .flatMap(clienteOut -> ServerResponse.ok()
+                        .contentType(APPLICATION_JSON)
+                        .bodyValue(clienteOut))
+                .onErrorResume(NotFoundException.class, ex -> ServerResponse.status(HttpStatus.NOT_FOUND)
+                        .bodyValue(Collections.singletonMap("message", ex.getMessage())))
+                .onErrorResume(BusinessException.class, ex -> ServerResponse.status(HttpStatus.BAD_REQUEST)
+                        .bodyValue(Collections.singletonMap("message", ex.getMessage())));
+    }
+
 
 
 }

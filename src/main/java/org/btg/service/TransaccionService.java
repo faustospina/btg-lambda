@@ -10,4 +10,6 @@ public interface TransaccionService {
     Mono<TransaccionDTO> findById(String id);
 
     Flux<TransaccionDTO> findAll();
+
+    Flux<TransaccionDTO> findByClienteId(String idCliente);
 }

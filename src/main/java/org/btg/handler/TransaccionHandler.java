@@ -55,4 +55,17 @@ public class TransaccionHandler {
                 .onErrorResume(NotFoundException.class, ex -> ServerResponse.status(HttpStatus.NOT_FOUND)
                         .bodyValue(Collections.singletonMap("message", ex.getMessage())));
     }
+
+    public Mono<ServerResponse> findTransaccionByCliente(ServerRequest request) {
+        String idCliente = request.pathVariable("idCliente");
+        return transaccionService.findByClienteId(idCliente)
+                .collectList()
+                .flatMap(transacciones ->
+                        ServerResponse.ok()
+                                .contentType(APPLICATION_JSON)
+                                .bodyValue(transacciones)
+                )
+                .onErrorResume(NotFoundException.class, ex -> ServerResponse.status(HttpStatus.NOT_FOUND)
+                        .bodyValue(Collections.singletonMap("message", ex.getMessage())));
+    }
 }
