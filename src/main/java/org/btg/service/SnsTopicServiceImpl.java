@@ -11,17 +11,14 @@ import org.springframework.stereotype.Service;
 public class SnsTopicServiceImpl implements SnsTopicService{
 
     private final AmazonSNSClient snsClient;
-
     String TOPIC_ARN="" ;
 
     @Override
     public String addSubscription(String destination, String type) {
         String protocol = determineProtocol(type);
-
         if (protocol == null) {
             return "Invalid subscription type. Please use 'sms' or 'email'.";
         }
-
         SubscribeRequest request = new SubscribeRequest(TOPIC_ARN, protocol, destination);
         snsClient.subscribe(request);
         return "Subscription request is pending. To confirm the subscription, check the " + type + ": " + destination;
