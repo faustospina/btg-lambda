@@ -1,0 +1,86 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: "Infraestructura completa: Lambda en Java 17 con S3 y API Gateway Público"
+
+Resources:
+  # Role para la Lambda Function
+  LambdaExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: LambdaBasicExecution
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: arn:aws:s3:::bucket-btg-back/*
+
+  # Lambda Function
+  BtgWebfluxLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: btg-webflux-lambda
+      Handler: org.btg.StreamLambdaHandler::handleRequest
+      Runtime: java17
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Code:
+        S3Bucket: bucket-btg-back
+        S3Key: btg-lambda-1.0-SNAPSHOT-lambda-package.zip  # Ruta ajustada
+      MemorySize: 512
+      Timeout: 30
+      Description: "Lambda Function para la franquicia Btg expuesta por API Gateway"
+
+  # API Gateway REST API
+  ApiGatewayRestApi:
+    Type: AWS::ApiGateway::RestApi
+    Properties:
+      Name: "BtgWebfluxApiGateway"
+      Description: "API Gateway para invocar la Lambda de Btg"
+      EndpointConfiguration:
+        Types: 
+          - REGIONAL
+
+  # Recurso API Gateway para permitir proxificación completa
+  ApiGatewayResource:
+    Type: AWS::ApiGateway::Resource
+    Properties:
+      ParentId: !GetAtt ApiGatewayRestApi.RootResourceId
+      PathPart: "{proxy+}"
+      RestApiId: !Ref ApiGatewayRestApi
+
+  # Método ANY para manejar cualquier tipo de solicitud HTTP
+  ApiGatewayMethod:
+    Type: AWS::ApiGateway::Method
+    Properties:
+      RestApiId: !Ref ApiGatewayRestApi
+      ResourceId: !Ref ApiGatewayResource
+      HttpMethod: ANY
+      AuthorizationType: NONE
+      Integration:
+        Type: AWS_PROXY
+        IntegrationHttpMethod: POST
+        Uri: arn:aws:apigateway:${AWS::Region}:lambda:path/2015-03-31/functions/${BtgWebfluxLambda.Arn}/invocations
+
+  # Permiso para que API Gateway invoque la Lambda
+  LambdaInvokePermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref BtgWebfluxLambda
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+
+Outputs:
+  ApiUrl:
+    Description: "URL del endpoint expuesto por API Gateway"
+    Value: 
+      Fn::Sub: "https://${ApiGatewayRestApi}.execute-api.${AWS::Region}.amazonaws.com/dev/{proxy+}"
