@@ -4,6 +4,8 @@ import lombok.RequiredArgsConstructor;
 import org.btg.exception.NotFoundException;
 import org.btg.model.documents.Transaccion;
 import org.btg.model.dto.TransaccionDTO;
+import org.btg.model.dto.TransaccionesResponse;
+import org.btg.model.mapper.FondoMapper;
 import org.btg.model.mapper.TransaccionMapper;
 import org.btg.repository.TransaccionRepository;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,10 @@ import java.util.List;
 public class TransaccionServiceImpl implements TransaccionService{
 
     private final TransaccionRepository repository;
+
+    private final FondoService fondoService;
+
+    private final FondoMapper fondoMapper;
 
     private final TransaccionMapper mapper;
     @Override
@@ -40,9 +46,13 @@ public class TransaccionServiceImpl implements TransaccionService{
     }
 
     @Override
-    public Flux<TransaccionDTO> findByClienteId(String idCliente) {
+    public Flux<TransaccionesResponse> findByClienteId(String idCliente) {
         return repository.findByClienteId(idCliente)
-                .map(mapper::toDTO)
+                .flatMap(transaccion ->  fondoService.findById(transaccion.getFondoId())
+                            .map(fondo -> mapper.reporte(transaccion, fondoMapper.toDocument(fondo)))
+                            .switchIfEmpty(Mono.error(new NotFoundException("Fondo not found for transaccion: " + transaccion.getId())))
+                )
                 .switchIfEmpty(Mono.error(new NotFoundException("Client not found: " + idCliente)));
     }
+
 }

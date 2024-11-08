@@ -1,6 +1,7 @@
 package org.btg.service;
 
 import org.btg.model.dto.TransaccionDTO;
+import org.btg.model.dto.TransaccionesResponse;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
@@ -11,5 +12,5 @@ public interface TransaccionService {
 
     Flux<TransaccionDTO> findAll();
 
-    Flux<TransaccionDTO> findByClienteId(String idCliente);
+    Flux<TransaccionesResponse> findByClienteId(String idCliente);
 }

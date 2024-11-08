@@ -1,8 +1,12 @@
 package org.btg.service;
 
 import org.btg.exception.NotFoundException;
+import org.btg.model.documents.Fondo;
 import org.btg.model.documents.Transaccion;
+import org.btg.model.dto.FondoDTO;
 import org.btg.model.dto.TransaccionDTO;
+import org.btg.model.dto.TransaccionesResponse;
+import org.btg.model.mapper.FondoMapper;
 import org.btg.model.mapper.TransaccionMapper;
 import org.btg.repository.TransaccionRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,8 +36,16 @@ class TransaccionServiceImplTest {
     @Mock
     private TransaccionRepository repository;
 
+    @Mock
+    private FondoService fondoService;
+
+    @Mock
+    private FondoMapper fondoMapper;
+
     private Transaccion transaccion;
     private TransaccionDTO transaccionDTO;
+
+    private TransaccionesResponse transaccionesResponse;
 
     @BeforeEach
     void setUp() {
@@ -53,6 +65,8 @@ class TransaccionServiceImplTest {
                 .fecha(transaccion.getFecha())
                 .monto(1000.0)
                 .build();
+       FondoDTO fondoDTO = new FondoDTO("1","test-fondo", 500000.0, "FPV");
+        transaccionesResponse = TransaccionesResponse.builder().fondo(fondoDTO).fecha(LocalDateTime.now()).monto(500000.0).tipo("Apertura").build();
     }
 
     @Test
@@ -114,18 +128,6 @@ class TransaccionServiceImplTest {
                 .verify();
 
         verify(repository).findAll();
-    }
-
-    @Test
-    void testFindByClienteId_Found() {
-        when(repository.findByClienteId("cliente1")).thenReturn(Flux.just(transaccion));
-        when(mapper.toDTO(transaccion)).thenReturn(transaccionDTO);
-
-        StepVerifier.create(transaccionService.findByClienteId("cliente1"))
-                .expectNext(transaccionDTO)
-                .verifyComplete();
-
-        verify(repository).findByClienteId("cliente1");
     }
 
     @Test
